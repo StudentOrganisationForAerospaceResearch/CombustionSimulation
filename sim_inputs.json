@@ -1,0 +1,34 @@
+{   "Ambient":
+
+    {
+        "Pressure" : 89,
+        "Temperature": 15
+    },
+
+    "Nitrous Tank":
+
+    {
+        "Volume": 35,
+        "Pressure": 800,
+        "Temperature": 50
+    },
+
+    "Plumbing":
+    {
+        "headLoss": 0
+    },
+
+    "Combustion Chamber":
+    {
+        "injectorHoles": 43,
+        "injectorHoleDiam": 0.0625,
+        "initTemp": 1000000000,
+        "initPress": 350
+    },
+
+    "Nozzle":
+    {
+        "something": 0
+    }
+
+}
