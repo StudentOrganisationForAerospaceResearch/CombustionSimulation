@@ -23,6 +23,7 @@ class Motor():
         deltaP = self.calcDeltaP()
         cd = self.combustionChamber.dischargeCoeff # hard coded, should be variable with variable up and downstream pressure BAD
         injectorHoles = self.combustionChamber.injectorHoles
+        # injector diameter in meters, ocnverted from inches
         injectorDiameter = self.combustionChamber.injectorHoleDiam*0.0254
         injectorArea = 0.25*math.pi*injectorDiameter**2
 
