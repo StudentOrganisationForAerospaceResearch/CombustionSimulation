@@ -9,8 +9,8 @@
 
     {
         "Volume": 35,
-        "Pressure": 514,
-        "Temperature": 5
+        "Pressure": 965,
+        "Temperature": 31.85
     },
 
     "Plumbing":
@@ -20,12 +20,11 @@
 
     "Combustion Chamber":
     {
-        "injectorHoles": 43,
-        "injectorHoleDiam": 0.0625,
+        "injectorHoles": 18,
+        "injectorHoleDiam": 0.0590551,
         "initTemp": 1000000000,
-        "initPress": 350,
-        "dischargeCoeff": 0.613
-        
+        "initPress": 363,
+        "dischargeCoeff": 0.49
     },
 
     "Nozzle":

@@ -1,5 +1,9 @@
-from cmath import sqrt
+from math import sqrt
 import math
+from re import sub
+from CoolProp.CoolProp import PropsSI
+import CoolProp.CoolProp as cp
+
 
 class Motor():
 
@@ -17,18 +21,26 @@ class Motor():
 
     def calcOxMassFlowRate(self):
         deltaP = self.calcDeltaP()
-        cd = 0.6134
-        injectorHoles = 43
-        injectorDiameter = 0.0625*0.0254
-        injectorArea = math.pi*injectorDiameter^2/4
+        cd = self.combustionChamber.dischargeCoeff # hard coded, should be variable with variable up and downstream pressure BAD
+        injectorHoles = self.combustionChamber.injectorHoles
+        injectorDiameter = self.combustionChamber.injectorHoleDiam*0.0254
+        injectorArea = 0.25*math.pi*injectorDiameter**2
 
-        oxMassFlowRate = injectorHoles*cd*injectorArea*sqrt(2*self.nitrousTank.tankLiquidDensity)
-
+        oxMassFlowRate = injectorHoles*cd*injectorArea*sqrt(2*self.nitrousTank.tankLiquidDensity*deltaP)
+        print('pausing here')
+        print(oxMassFlowRate)
+        print(injectorHoles)
+        print(cd)
+        print(injectorArea)
+        print(self.nitrousTank.tankLiquidDensity)
+        print(deltaP)
+        
     def calcTotalMassFlowRate(self):
         return 1.0
 
     def calcDeltaP(self):
-        self.deltaP = self.nitrousTank.pressure - self.combustionChamber.pressure
+        print(self.nitrousTank.pressure * 6894.76)
+        return (self.nitrousTank.pressure - self.combustionChamber.pressure) * 6894.76
 
     def updateAll(self):
         self.ambient.update()
@@ -57,16 +69,20 @@ class NitrousTank():
         self.pressure = subDict["Pressure"]
         self.temp = subDict["Temperature"]
         # self.mass = subDict["Mass of Nitrous"]
-        self.tankLiquidDensity = self.calcTankLiquidDensity()
+        self.tankLiquidDensity = self.calcTankLiquidDensity(self.temp, self.pressure)
+        # self.tankLiquidDensity = 650
         self.motor = motor
         # self.tankVapourDensity = self.calcTankVapourDensity()
 
     def testStateOfCC(self):
         print(self.motor.combustionChamber.pressure)
 
-    def calcTankLiquidDensity(self):
+    def calcTankLiquidDensity(self, temp, pressure):
         # BAD VALUE needs to be updated to be accurate
-        return 48.21 * 16.0185  # lb/ft^3 into kg/m^3
+
+        temp += 273.15
+        pressure *= 6894.76
+        return PropsSI('D', 'T|liquid', temp, 'P', pressure, 'NITROUSOXIDE')
 
     def update(self):
         pass
@@ -79,28 +95,16 @@ class CombustionChamber():
 
     def __init__(self, subDict, motor):
         self.injectorHoles = subDict["injectorHoles"]
-        self.injectorHoleDiam = ["injectorHoleDiam"]
+        self.injectorHoleDiam = subDict["injectorHoleDiam"]
         self.temp = subDict["initTemp"]
         self.pressure = subDict["initPress"]
+        self.dischargeCoeff = subDict["dischargeCoeff"]
 
     def calcRegression(self, oxFlowRate):
         pass
 
     def update(self):
         self.pressure += 1
-
-    def calcDischargeCoefficient(self, deltaP):
-        dp_psi = deltaP*0.00014503
-
-        if dp_psi <= 200:
-            cd = 0.77
-        elif dp_psi > 200 and dp_psi < 450:
-            cd = -0.00108*dp_psi + 0.986
-        else:
-            cd = 0.49
-
-        return cd
-
 
 class Nozzle():
 
