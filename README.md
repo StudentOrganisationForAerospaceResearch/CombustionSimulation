@@ -6,6 +6,7 @@ This repo uses the CoolProp library, which currenly requires a python version of
 
 # CoolProp installation
 finally, install cool prop as follows:
-'''
+
+```
 pip install coolprop
-'''
+```
