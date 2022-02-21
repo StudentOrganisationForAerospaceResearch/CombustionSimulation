@@ -1,4 +1,4 @@
-# Combustion Simulation
+### Combustion Simulation
 Simulation tool to predict combustion performance for SOAR hybrid rocket motors
 
 # Python Requirments
