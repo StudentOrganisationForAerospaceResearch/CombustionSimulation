@@ -2,15 +2,15 @@
 
     {
         "Pressure" : 89,
-        "Temperature": 15
+        "Temperature": 20
     },
 
     "Nitrous Tank":
 
     {
         "Volume": 35,
-        "Pressure": 470,
-        "Temperature": 5
+        "Pressure": 580,
+        "Temperature": 23
     },
 
     "Plumbing":
@@ -23,8 +23,9 @@
         "injectorHoles": 43,
         "injectorHoleDiam": 0.0625,
         "initTemp": 1000000000,
-        "initPress": 120,
-        "dischargeCoeff": 0.3729
+        "initPress": 190,
+        "dischargeCoeff": 0.4781
+        
     },
 
     "Nozzle":
