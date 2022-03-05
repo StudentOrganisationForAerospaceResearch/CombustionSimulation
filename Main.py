@@ -7,13 +7,13 @@ curDir = os.path.dirname(os.path.abspath(__file__)) # create absolute path to th
 
 os.chdir(curDir) # ch cwd to previously defined absolute path (just incase the folder wasn't opened the same way I opened it)
 
-simDefinition = 'sim_inputs_March4_Prediction.json'
+simDefinition = 'sim_inputs.json'
 
 with open(simDefinition) as f:
     rawDictionary = json.loads(f.read())
 
 motor = Motor(rawDictionary)
 
-motor.calcOxMassFlowRate()
+# motor.calcOxMassFlowRate()
 
 # myMotor = Motor('sim_inputs.json')

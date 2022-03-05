@@ -14,6 +14,7 @@ class Motor():
         self.combustionChamber = CombustionChamber(
             rawDictionary["Combustion Chamber"], self)
         self.nozzle = Nozzle(rawDictionary["Nozzle"], self)
+        # self.timeStep = rawDictionary(["Motor"]["TimeStep"])
 
     def test(self):
         self.nitrousTank.testStateOfCC()
@@ -27,9 +28,9 @@ class Motor():
         injectorDiameter = self.combustionChamber.injectorHoleDiam*0.0254
         injectorArea = 0.25*math.pi*injectorDiameter**2
 
-        oxMassFlowRate = injectorHoles*cd*injectorArea*sqrt(2*self.nitrousTank.tankLiquidDensity*deltaP)
+        self.oxMassFlowRate = injectorHoles*cd*injectorArea*sqrt(2*self.nitrousTank.tankLiquidDensity*deltaP)
         print('pausing here')
-        print(oxMassFlowRate)
+        print(self.oxMassFlowRate)
         print(injectorHoles)
         print(cd)
         print(injectorArea)
@@ -67,23 +68,39 @@ class NitrousTank():
 
     def __init__(self, subDict, motor):
         self.volume = subDict["Volume"]
-        self.pressure = subDict["Pressure"]
-        self.temp = subDict["Temperature"]
-        # self.mass = subDict["Mass of Nitrous"]
-        self.tankLiquidDensity = self.calcTankLiquidDensity(self.temp, self.pressure)
-        # self.tankLiquidDensity = 650
+        self.pressure = subDict["Pressure"] * 6894.76
+        self.temp = subDict["Temperature"] + 273.15
+        self.mass = subDict["NitrousMass"]
         self.motor = motor
-        # self.tankVapourDensity = self.calcTankVapourDensity()
+        self.characterizeTank()
 
-    def testStateOfCC(self):
-        print(self.motor.combustionChamber.pressure)
+    def characterizeTank(self):
+        quality = 0.5
+        self.pressure = 590 * 6894.76
+        phase = cp.PhaseSI('Q', quality, 'P', self.pressure, 'NITROUSOXIDE')
+        print("Phase: %s" % (str(phase)))
+        temp = PropsSI('T', 'Q', quality, 'P', self.pressure, 'NITROUSOXIDE')
+        print("Temp: %s" % (str(temp)))
+        phase = cp.PhaseSI('T', temp, 'P', self.pressure, 'NITROUSOXIDE')
+        print("Phase: %s" % (str(phase)))
+        # self.quality = PropsSI('Q', 'T|twophase', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
 
-    def calcTankLiquidDensity(self, temp, pressure):
-        # BAD VALUE needs to be updated to be accurate
+        self.liquidSpecificEnthalpy = PropsSI('H', 'T|liquid', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
+        # totalLiquidEnthalpy = self.mass * (1 - self.quality) * self.liquidSpecificEnthalpy
 
-        temp += 273.15
-        pressure *= 6894.76
-        return PropsSI('D', 'T|liquid', temp, 'P', pressure, 'NITROUSOXIDE')
+        self.vapourSpecificEnthalpy = PropsSI('H', 'T|gas', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
+        # totalVapourEnthalpy = self.mass * self.quality * self.vapourSpecificEnthalpy
+
+        # totalEnthalpy1 = totalLiquidEnthalpy + totalVapourEnthalpy
+        totalEnthalpy2 = self.mass * PropsSI('H', 'T', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
+        # print(totalEnthalpy1)
+        print(totalEnthalpy2)
+
+
+    def calcOxMass(self):
+        self.oxConsumed = self.motor.timestep * self.motor.oxMassFlowRate
+        self.oldOxMass = self.currentOxMass
+        self.newOxMass = self.oldOxMass - self.oxConsumed
 
     def update(self):
         pass

@@ -1,4 +1,10 @@
-{   "Ambient":
+{    "Motor":
+
+    {
+        "TimeStep": 0.01
+    },
+    
+    "Ambient":
 
     {
         "Pressure" : 89,
@@ -8,9 +14,10 @@
     "Nitrous Tank":
 
     {
-        "Volume": 35,
-        "Pressure": 514,
-        "Temperature": 5
+        "Volume": 60e-3,
+        "Pressure": 550,
+        "Temperature": 4,
+        "NitrousMass": 20
     },
 
     "Plumbing":
