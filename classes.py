@@ -16,10 +16,6 @@ class Motor():
         self.nozzle = Nozzle(rawDictionary["Nozzle"], self)
         # self.timeStep = rawDictionary(["Motor"]["TimeStep"])
 
-    def test(self):
-        self.nitrousTank.testStateOfCC()
-        self.combustionChamber.update()
-
     def calcOxMassFlowRate(self):
         deltaP = self.calcDeltaP() 
         cd = self.combustionChamber.dischargeCoeff # hard coded, should be variable with variable up and downstream pressure BAD
@@ -72,35 +68,31 @@ class NitrousTank():
         self.temp = subDict["Temperature"] + 273.15
         self.mass = subDict["NitrousMass"]
         self.motor = motor
-        self.characterizeTank()
 
-    def characterizeTank(self):
-        quality = 0.5
-        self.pressure = 590 * 6894.76
-        phase = cp.PhaseSI('Q', quality, 'P', self.pressure, 'NITROUSOXIDE')
-        print("Phase: %s" % (str(phase)))
-        temp = PropsSI('T', 'Q', quality, 'P', self.pressure, 'NITROUSOXIDE')
-        print("Temp: %s" % (str(temp)))
-        phase = cp.PhaseSI('T', temp, 'P', self.pressure, 'NITROUSOXIDE')
-        print("Phase: %s" % (str(phase)))
-        # self.quality = PropsSI('Q', 'T|twophase', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
+        self.specificVolume = self.volume / self.mass # m^3/kg
+        self.density = 1 / self.specificVolume
+        self.quality = PropsSI('Q', 'D', self.density, 'P', self.pressure, 'NITROUSOXIDE')
+        self.liquidDensity = PropsSI('D', 'Q', 0, 'P', self.pressure, 'NITROUSOXIDE')
+        self.totalEnergy = self.mass * PropsSI('U', 'P', self.pressure, 'Q', self.quality)
 
-        self.liquidSpecificEnthalpy = PropsSI('H', 'T|liquid', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
-        # totalLiquidEnthalpy = self.mass * (1 - self.quality) * self.liquidSpecificEnthalpy
-
-        self.vapourSpecificEnthalpy = PropsSI('H', 'T|gas', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
-        # totalVapourEnthalpy = self.mass * self.quality * self.vapourSpecificEnthalpy
-
-        # totalEnthalpy1 = totalLiquidEnthalpy + totalVapourEnthalpy
-        totalEnthalpy2 = self.mass * PropsSI('H', 'T', self.temp, 'P', self.pressure, 'NITROUSOXIDE')
-        # print(totalEnthalpy1)
-        print(totalEnthalpy2)
-
+    def update(self):
+        self.calcOxMass()
+        self.calcTankEnergy()
 
     def calcOxMass(self):
         self.oxConsumed = self.motor.timestep * self.motor.oxMassFlowRate
-        self.oldOxMass = self.currentOxMass
-        self.newOxMass = self.oldOxMass - self.oxConsumed
+        self.oldOxMass = self.mass
+        self.mass = self.oldOxMass - self.oxConsumed
+
+    def calcTankEnergy(self):
+        liquidSpecificEnergy = PropsSI('U', 'Q', 0, 'P', self.pressure)
+        energyExpelled = liquidSpecificEnergy * self.oxConsumed
+        self.totalEnergy = self.totalEnergy - energyExpelled
+        
+    def characterizeTank(self):
+        pass
+
+
 
     def update(self):
         pass

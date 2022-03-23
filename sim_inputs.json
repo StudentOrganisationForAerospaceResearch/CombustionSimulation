@@ -14,7 +14,7 @@
     "Nitrous Tank":
 
     {
-        "Volume": 60e-3,
+        "Volume": 40e-3,
         "Pressure": 550,
         "Temperature": 4,
         "NitrousMass": 20
