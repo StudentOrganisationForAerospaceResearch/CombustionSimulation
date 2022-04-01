@@ -17,7 +17,8 @@
         "Volume": 40e-3,
         "Pressure": 550,
         "Temperature": 4,
-        "NitrousMass": 20
+        "NitrousMass": 20,
+        "Ullage": 0.1
     },
 
     "Plumbing":
@@ -30,7 +31,7 @@
         "injectorHoles": 43,
         "injectorHoleDiam": 0.0625,
         "initTemp": 1000000000,
-        "initPress": 350,
+        "initPress": 200,
         "dischargeCoeff": 0.613
         
     },

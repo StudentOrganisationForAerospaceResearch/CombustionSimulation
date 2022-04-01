@@ -14,6 +14,6 @@ with open(simDefinition) as f:
 
 motor = Motor(rawDictionary)
 
-# motor.calcOxMassFlowRate()
+motor.calcOxMassFlowRate()
 
 # myMotor = Motor('sim_inputs.json')

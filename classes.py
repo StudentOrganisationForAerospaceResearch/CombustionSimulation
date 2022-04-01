@@ -24,21 +24,21 @@ class Motor():
         injectorDiameter = self.combustionChamber.injectorHoleDiam*0.0254
         injectorArea = 0.25*math.pi*injectorDiameter**2
 
-        self.oxMassFlowRate = injectorHoles*cd*injectorArea*sqrt(2*self.nitrousTank.tankLiquidDensity*deltaP)
+        self.oxMassFlowRate = injectorHoles*cd*injectorArea*sqrt(2*self.nitrousTank.density*deltaP)
         print('pausing here')
         print(self.oxMassFlowRate)
         print(injectorHoles)
         print(cd)
         print(injectorArea)
-        print(self.nitrousTank.tankLiquidDensity)
+        print(self.nitrousTank.density)
         print(deltaP)
         
     def calcTotalMassFlowRate(self):
         return 1.0
 
     def calcDeltaP(self):
-        print(self.nitrousTank.pressure * 6894.76)
-        return (self.nitrousTank.pressure - self.combustionChamber.pressure) * 6894.76
+        # print(self.nitrousTank.pressure * 6894.76)
+        return (self.nitrousTank.pressure - self.combustionChamber.pressure) 
 
     def updateAll(self):
         self.ambient.update()
@@ -67,13 +67,22 @@ class NitrousTank():
         self.pressure = subDict["Pressure"] * 6894.76
         self.temp = subDict["Temperature"] + 273.15
         self.mass = subDict["NitrousMass"]
+        self.ullage = subDict["Ullage"]
         self.motor = motor
 
         self.specificVolume = self.volume / self.mass # m^3/kg
         self.density = 1 / self.specificVolume
         self.quality = PropsSI('Q', 'D', self.density, 'P', self.pressure, 'NITROUSOXIDE')
         self.liquidDensity = PropsSI('D', 'Q', 0, 'P', self.pressure, 'NITROUSOXIDE')
-        self.totalEnergy = self.mass * PropsSI('U', 'P', self.pressure, 'Q', self.quality)
+        # self.totalEnergy = self.mass * PropsSI('U', 'P', self.pressure, 'Q', self.quality)
+
+
+        self.liquidDensity = PropsSI('D', 'P', self.pressure, 'Q', 0, 'NITROUSOXIDE')
+        self.vapourDensity = PropsSI('D', 'P', self.pressure, 'Q', 1, 'NITROUSOXIDE')
+        self.liquidMass = self.liquidDensity * self.volume * (1-self.ullage)
+        self.vaporMass = self.vapourDensity * self.volume * self.ullage
+        
+        
 
     def update(self):
         self.calcOxMass()
@@ -107,7 +116,7 @@ class CombustionChamber():
         self.injectorHoles = subDict["injectorHoles"]
         self.injectorHoleDiam = subDict["injectorHoleDiam"]
         self.temp = subDict["initTemp"]
-        self.pressure = subDict["initPress"]
+        self.pressure = subDict["initPress"] * 6894.76
         self.dischargeCoeff = subDict["dischargeCoeff"]
 
     def calcRegression(self, oxFlowRate):
