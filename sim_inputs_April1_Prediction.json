@@ -10,7 +10,8 @@
     {
         "Volume": 35,
         "Pressure": 580,
-        "Temperature": 15
+        "Temperature": 15,
+        "Mass": 20
     },
 
     "Plumbing":
