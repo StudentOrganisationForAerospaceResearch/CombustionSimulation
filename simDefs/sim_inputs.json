@@ -9,7 +9,6 @@
 
     {
         "Volume": 35,
-        "Pressure": 470,
         "Temperature": 5
     },
 
@@ -23,8 +22,8 @@
         "injectorHoles": 43,
         "injectorHoleDiam": 0.0625,
         "initTemp": 1000000000,
-        "initPress": 120,
-        "dischargeCoeff": 0.3729
+        "initPress": 350,
+        "dischargeCoeff": 0.613
     },
 
     "Nozzle":
