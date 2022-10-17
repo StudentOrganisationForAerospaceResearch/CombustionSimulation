@@ -1,12 +1,18 @@
-{   "Ambient":
-
+{
+    "Conversions":
     {
-        "Pressure" : 89,
+        "in-to-m": 0.0254,
+        "psi-to-pa": 6894.7573,
+        "kelvin": 273.15
+    },
+
+    "Ambient":
+    {
+        "Pressure": 89000,
         "Temperature": 22
     },
 
     "Nitrous Tank":
-
     {
         "Volume": 35,
         "Temperature": 22,
@@ -24,7 +30,8 @@
         "injectorHoles": 43,
         "injectorHoleDiam": 0.0625,
         "injectorLength": 0.125,
-        "initTemp": 1000000000,
+        "dischargeCoefficient": 0.66,
+        "initTemp": 22,
         "initPress": 0
     },
 
@@ -32,5 +39,4 @@
     {
         "something": 0
     }
-
 }
