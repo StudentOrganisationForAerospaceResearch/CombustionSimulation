@@ -1,31 +1,28 @@
 import json
 import os
-from classes.classes import Motor
-from CoolProp.CoolProp import PropsSI
-import matplotlib.pyplot as plt
+from classes.motor import InjectionMethod
+
+DEBUG = 1  # toggle for outputting backend information, 0 and 1 for on or off, respectively
+COLD_FLOW = 1  # toggle for static fire or cold flow test, 0 and 1 for S.F. or C.F.T, respectively
 
 curDir = os.path.dirname(os.path.abspath(__file__))  # create absolute path to the directory of this file
 
 os.chdir(curDir)  # ch cwd to previously defined absolute path (to ensure consistency when opening the file)
 
-simDefinition = 'simDefs/sim_input_template.json'  # path to sim definition file
+#simDefinition = 'simDefs/sim_input_template.json'  # path to sim definition file in simDefs folder
+#simDefinition = 'simDefs/sim_input_cold_flow_43_holes.json'  # path to sim definition file in simDefs folder
+#simDefinition = 'simDefs/sim_input_34HSP.json'  # path to sim definition file in simDefs folder
+simDefinition = 'simDefs/sim_input_59HSP.json'  # path to sim definition file in simDefs folder
 
 with open(simDefinition) as f:  # open the sim definition file which is json format
     rawDictionary = json.loads(f.read())  # read the json dict into a raw dict variable
 
-motor = Motor(rawDictionary)  # create motor object using raw dictionary
+m = InjectionMethod(rawDictionary, COLD_FLOW, DEBUG)  # create motor object using raw dictionary
+m_SPI = m.calcSPI(COLD_FLOW, DEBUG)
+m_HEM = m.calcHEM(COLD_FLOW, DEBUG)
+m_NHNE = m.calcNHNE(COLD_FLOW, DEBUG)
 
-holes = motor.combustionChamber.injectorHoles # provided number of holes
-
-m_dot_hem = motor.calcHEM()  # calculates the mass flow using Homogenous Equilibrium Method prediction
-m_dot_spi = motor.calcSPI()  # calculates the mass flow using Single Phase Incompressible prediction
-m_dot_nhne = motor.calcNHNE()  # calculates the mass flow using Non-Homogenous Non-Equilibrium Method
-
-print("\nSPI Mass Flow (1): %15.9f [kg/s]" % (m_dot_spi/holes))
-print("SPI Mass Flow (%i): %14.9f [kg/s]" % (holes, m_dot_spi))
-print("HEM Mass Flow (1): %15.9f [kg/s]" % (m_dot_hem/holes))
-print("HEM Mass Flow (%i): %14.9f [kg/s]" % (holes, m_dot_hem))
-print("NHNE Mass Flow (1): %14.9f [kg/s]" % (m_dot_nhne/holes))
-print("NHNE Mass Flow (%i): %13.9f [kg/s]" % (holes, m_dot_nhne))
-
-# myMotor = Motor('sim_inputs.json')
+print('*** [Mass Flow Rate Predictions]')
+print(' Mass Flow Rate (SPI,%i): %.5f [kg/s]\n Mass Flow Rate (SPI,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_SPI, (m_SPI / m.injectorPlate.holes)))
+print(' Mass Flow Rate (HEM,%i): %.5f [kg/s]\n Mass Flow Rate (HEM,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_HEM, (m_HEM / m.injectorPlate.holes)))
+print(' Mass Flow Rate (NHNE,%i): %.5f [kg/s]\n Mass Flow Rate (NHNE,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_NHNE, (m_NHNE / m.injectorPlate.holes)))

@@ -18,8 +18,8 @@
     "Nitrous Tank":
     {
         "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [???]",
-        "Temperature": 0.29,
-        "Pressure": 400,
+        "Temperature": 22,
+        "Pressure": 456,
         "Volume": 0,
         "Fluid": "CO2"
     },

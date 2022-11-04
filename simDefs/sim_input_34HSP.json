@@ -9,7 +9,7 @@
     "Injector Plate":
     {
         "_comment": "Dimensions are in meters [m]",
-        "injectorHoleCount": 43,
+        "injectorHoleCount": 34,
         "injectorDiameter": 0.0625,
         "injectorLength": 0.125,
         "dischargeCoefficient": 0
@@ -18,8 +18,8 @@
     "Nitrous Tank":
     {
         "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [???]",
-        "Temperature": 0.29,
-        "Pressure": 400,
+        "Temperature": 0.13,
+        "Pressure": 400.39,
         "Volume": 0,
         "Fluid": "CO2"
     },
