@@ -10,7 +10,6 @@
 from math import pi
 from math import sqrt
 from CoolProp.CoolProp import PropsSI
-from CoolProp.CoolProp import PhaseSI
 
 
 class InjectionMethod:
@@ -55,6 +54,16 @@ class InjectionMethod:
             return self.injectorPlate.cd
 
     def calcDeltaH(self, T1, P1, T2, P2, T):  # 1 and 2 correspond to the upstream and downstream values
+        # Enthalpy change between upstream and downstream
+        # Where,
+        #   T1 is the upstream temperature [K] (NOx tank)
+        #   T2 is the downstream temperature [K] (CC)
+        #   P1 is the upstream pressure [Pa] (NOx tank)
+        #   P2 is the downstream pressure [Pa] (CC)
+        #   S1 is the upstream entropy [kJ/kg/K] (NOx tank)
+        #   S2 is the downstream entropy [kJ/kg/K] (CC)
+        #   H1 is the upstream enthalpy [kJ/kg] (NOx tank)
+        #   H2 is the downstream enthalpy [kJ/kg] (CC)
         f = self.nitrousTank.fluid
         T1 = T1 + self.conversion.kelvin
         T2 = T2 + self.conversion.kelvin
@@ -67,17 +76,21 @@ class InjectionMethod:
         S1 = PropsSI('S', 'P', P1, 'T', T1, f)
         S2 = S1
         H1 = PropsSI('H', 'P', P1, 'S', S1, f)
-        H2 = PropsSI('H', 'T', T2, 'S', S2, f)
+        H2 = PropsSI('H', 'P', P2, 'S', S2, f)
         return abs(H1 - H2)
 
     def calcK(self, nitrousP, combustP):
+        # Non-equilibrium Parameter, K
+        # Where,
+        #   P1 is the fluid pressure in NOx tank
+        #   Pv1 is the upstream vapor fluid pressure
+        #   P2 is the fluid pressure in the combustion chamber
         f = self.nitrousTank.fluid
         P1 = self.nitrousTank.p * self.conversion.psi2pa + self.ambient.p
         T1 = self.nitrousTank.t + self.conversion.kelvin
         P2 = self.combustChamber.pi * self.conversion.psi2pa + self.ambient.p
         Pv1 = PropsSI('P', 'T', T1, 'Q', 1, f) + self.ambient.p
         val = sqrt((P1 - P2) / (Pv1 - P2))
-        print(P1,P2,Pv1,val)
         return val
 
     def calcSPI(self, T, D):
