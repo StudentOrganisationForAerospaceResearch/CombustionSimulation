@@ -1,15 +1,15 @@
 {
-    "43 Hole Steel Plate, Carbon Dioxide":
+    "43 Hole Steel Plate, Nitrous Oxide":
     {
-        "Source of Data": "Using prior cold flow tests",
-        "Date of Data:": "",
+        "Source of Data": "Rothney Static Fire Test",
+        "Date of Data:": "October 7, 2022",
         "Date of JSON Creation": "Nov 5, 2022"
     },
 
     "Ambient":
     {
         "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
-        "Pressure": 89000,
+        "Pressure": 89100,
         "Temperature": 22
     },
 
@@ -27,20 +27,20 @@
     {
         "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [L]",
         "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
-        "Temperature": 0.29,
-        "Pressure": 400,
+        "Temperature": 9.344,
+        "Pressure": 572.53,
         "Volume": 0,
-        "Fluid": "CO2"
+        "Fluid": "NITROUSOXIDE"
     },
 
     "Combustion Chamber":
     {
-        "_comment": "init-T and -P are cold flow values, steady-T and -P are static fire values",
+        "_comment": "init-T and -P are cold flow values, steady-T and -P are static fire values [K] and [Pa], respectively",
         "__comment": "55L tank at Rothney",
         "initialTemperature": 22,
         "initialPressure": 0,
-        "steadyStateTemperature": 2000,
-        "steadyStatePressure": 300
+        "steadyStateTemperature": 2956,
+        "steadyStatePressure": 470.13
     },
 
     "Conversions":

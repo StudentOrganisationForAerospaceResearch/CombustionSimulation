@@ -1,7 +1,7 @@
 {
     "Ambient":
     {
-        "_comment": "Ambient conditions",
+        "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
         "Pressure": 89000,
         "Temperature": 22
     },

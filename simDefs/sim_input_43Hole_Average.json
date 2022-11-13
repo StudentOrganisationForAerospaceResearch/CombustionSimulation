@@ -1,14 +1,7 @@
 {
-    "43 Hole Steel Plate, Carbon Dioxide":
-    {
-        "Source of Data": "Using prior cold flow tests",
-        "Date of Data:": "",
-        "Date of JSON Creation": "Nov 5, 2022"
-    },
-
     "Ambient":
     {
-        "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
+        "_comment": "Ambient conditions",
         "Pressure": 89000,
         "Temperature": 22
     },
@@ -16,7 +9,6 @@
     "Injector Plate":
     {
         "_comment": "Dimensions are in meters [m]",
-        "__comment": "If no discharge coefficient is provided, program will generate one",
         "injectorHoleCount": 43,
         "injectorDiameter": 0.0625,
         "injectorLength": 0.125,
@@ -25,10 +17,9 @@
 
     "Nitrous Tank":
     {
-        "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [L]",
-        "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
-        "Temperature": 0.29,
-        "Pressure": 400,
+        "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [???]",
+        "Temperature": 10,
+        "Pressure": 387,
         "Volume": 0,
         "Fluid": "CO2"
     },
