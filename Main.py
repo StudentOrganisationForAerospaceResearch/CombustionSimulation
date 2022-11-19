@@ -1,6 +1,7 @@
 import json
 import os
 from classes.motor import InjectionMethod
+from classes.simulation import Simulation
 
 DEBUG = True  # toggle for outputting backend information, True or False for on or off, respectively
 COLD_FLOW = False  # toggle for cold flow test (CFT) or static fire (SF), True or False for CFT or SF, respectively
@@ -25,8 +26,16 @@ m = InjectionMethod(rawDictionary, COLD_FLOW, DEBUG)  # create motor object usin
 m_SPI = m.calcSPI(COLD_FLOW, DEBUG)  # Calls Single Phase Incompressible Model
 m_HEM = m.calcHEM(COLD_FLOW, DEBUG)  # Calls Homogenous Equilibrium Model
 m_NHNE = m.calcNHNE(COLD_FLOW, DEBUG)  # Calls Non-Homogenous Non-Equilibrium Model
-
-print('*** [Mass Flow Rate Predictions]')
+print('\n\n*** [Mass Flow Rate Predictions]')
 print(' Mass Flow Rate (SPI,%i): %.5f [kg/s]\n Mass Flow Rate (SPI,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_SPI, (m_SPI / m.injectorPlate.holes)))
 print(' Mass Flow Rate (HEM,%i): %.5f [kg/s]\n Mass Flow Rate (HEM,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_HEM, (m_HEM / m.injectorPlate.holes)))
 print(' Mass Flow Rate (NHNE,%i): %.5f [kg/s]\n Mass Flow Rate (NHNE,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_NHNE, (m_NHNE / m.injectorPlate.holes)))
+
+s = Simulation(m)
+im = 20  # initial mass in Nitrous Tank in [kg]
+pv_size = 22.5  # size of pressure vessel in [L]
+ts = 0.01  # time step, dt in [sec]
+tt = 7  # total dumping time, t in [sec]
+s.simulate(0, im, pv_size, ts, tt)
+s.simulate(1, im, pv_size, ts, tt)
+s.simulate(2, im, pv_size, ts, tt)

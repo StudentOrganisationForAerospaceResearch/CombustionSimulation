@@ -195,6 +195,18 @@ class Motor:
         # self.nozzle.update()
         # self.plumbing.update()
 
+    def getEnthalpy(self, temperature, pressure):
+        return PropsSI('H','T', temperature, 'P', pressure, self.nitrousTank.fluid)
+
+    def getInitTemperature(self):
+        return self.nitrousTank.temp
+    # def getPressure(self, ):
+    #     if
+    #     return self.nitrousTank.pressure
+
+    def getQuality(self, temperature, pressure):
+        return PropsSI('Q', 'T', temperature, 'P', pressure, self.nitrousTank.fluid)
+
 
 class Ambient:
     def __init__(self, subDict, motor):
