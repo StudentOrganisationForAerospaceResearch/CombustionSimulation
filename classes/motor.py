@@ -9,9 +9,13 @@
 
 from math import pi
 from math import sqrt
-from decimal import Decimal
 from CoolProp.CoolProp import PropsSI
 from CoolProp.CoolProp import PhaseSI
+
+RECURSIVE_MASS_RATE = []  # [Time, upstreamPressure, downstreamPressure, massFlowRate]
+dt = 5  # time step, # of times per second
+DEBUG_RECURSIVE = True  # toggle for outputting backend information, True or False for on or off, respectively
+COLD_FLOW_RECURSIVE = True  # toggle for cold flow test (CFT) or static fire (SF), True or False for CFT or SF, respectively
 
 
 class InjectionMethod:
@@ -58,7 +62,7 @@ class InjectionMethod:
             print('[!] Discharge Coefficient Used From .JSON [!]')
             return self.injectorPlate.cd
 
-    def calcDeltaH(self, T1, P1, T2, P2, COLD_FLOW):
+    def calcDeltaH(self, T1, P1, T2, P2, COLD_FLOW, upstreamPressure=None, downstreamPressure=None):
         # States 1 and 2 are isentropic, S1 = S2
         # Enthalpy change between upstream and downstream
         # Where,
@@ -73,30 +77,60 @@ class InjectionMethod:
         f = self.nitrousTank.fluid
         T1 = T1 + self.conversion.kelvin
         T2 = T2 + self.conversion.kelvin
-        P1 = (P1 * self.conversion.psi2pa) + self.ambient.p
-        P2 = (P2 * self.conversion.psi2pa) + self.ambient.p
-        S1 = PropsSI('S', 'P', P1, 'T', T1, f)
-        S2 = S1
-        if COLD_FLOW:
-            if f == "CO2":
-                # Enthalpy of downstream cannot be attained at ambient pressure (89kPa)
-                # So, both downstream and upstream pressures are scaled by 300kPa
-                pressureOffset = 100 * self.conversion.psi2pa  # Overcomes error where S-molar is smaller than minimum value in PropsSI database
-                P1 += pressureOffset
-                P2 += pressureOffset
+
+        if upstreamPressure==None and downstreamPressure==None:
+            P1 = (P1 * self.conversion.psi2pa) + self.ambient.p
+            P2 = (P2 * self.conversion.psi2pa) + self.ambient.p
+            S1 = PropsSI('S', 'P', P1, 'T', T1, f)
+            S2 = S1
+            if COLD_FLOW:
+                if f == "CO2":
+                    # Enthalpy of downstream cannot be attained at ambient pressure (89kPa)
+                    # So, both downstream and upstream pressures are scaled by 300kPa
+                    #pressureOffset = 100 * self.conversion.psi2pa  # Overcomes error where S-molar is smaller than minimum value in PropsSI database
+                    #P1 += pressureOffset
+                    #P2 += pressureOffset
+                    S1 = PropsSI('S', 'P', P1, 'T', T1, f)
+                    S2 = S1
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
+                else:
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
+            else:
+                H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                H2 = PropsSI('H', 'P', P2, 'S', S2, f)  # Assuming fluid after injector plate is 95% atomised
+                #H22 = PropsSI('H', 'P', P2, 'S', S2, f)
+                #print(H1, H2,H22)
+            return abs(H1 - H2)
+        else:
+            if COLD_FLOW:
+                if f == "CO2":
+                    # Enthalpy of downstream cannot be attained at ambient pressure (89kPa)
+                    # So, both downstream and upstream pressures are scaled by 300kPa
+                    P1 = (upstreamPressure * self.conversion.psi2pa) + self.ambient.p
+                    P2 = (downstreamPressure * self.conversion.psi2pa) + self.ambient.p
+                    S1 = PropsSI('S', 'P', P1, 'T', T1, f)
+                    S2 = S1
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
+                else:
+                    P1 = (upstreamPressure * self.conversion.psi2pa) + self.ambient.p
+                    P2 = (downstreamPressure * self.conversion.psi2pa) + self.ambient.p
+                    S1 = PropsSI('S', 'P', P1, 'T', T1, f)
+                    S2 = S1
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
+            else:
+                P1 = (upstreamPressure * self.conversion.psi2pa) + self.ambient.p
+                P2 = (downstreamPressure * self.conversion.psi2pa) + self.ambient.p
                 S1 = PropsSI('S', 'P', P1, 'T', T1, f)
                 S2 = S1
                 H1 = PropsSI('H', 'P', P1, 'T', T1, f)
-                H2 = PropsSI('H', 'P', P2, 'S', S2, f)
-            else:
-                H1 = PropsSI('H', 'P', P1, 'T', T1, f)
-                H2 = PropsSI('H', 'P', P2, 'S', S2, f)
-        else:
-            H1 = PropsSI('H', 'P', P1, 'T', T1, f)
-            H2 = PropsSI('H', 'Q', 0.95, 'P', P2, f)  # Assuming fluid after injector plate is 95% atomised
-            #H22 = PropsSI('H', 'P', P2, 'S', S2, f)
-            #print(H1, H2,H22)
-        return abs(H1 - H2)
+                H2 = PropsSI('H', 'P', P2, 'S', S2, f)  # Assuming fluid after injector plate is 95% atomised
+                #H22 = PropsSI('H', 'P', P2, 'S', S2, f)
+                #print(H1, H2,H22)
+            return abs(H1 - H2)
 
     def calcK(self, nitrousP, combustP):
         # Non-equilibrium Parameter, K
@@ -111,7 +145,7 @@ class InjectionMethod:
         Pv1 = PropsSI('P', 'T', T1, 'Q', 1, f) + self.ambient.p
         return sqrt((P1 - P2) / (Pv1 - P2))
 
-    def calcSPI(self, COLD_FLOW, DEBUG):
+    def calcSPI(self, COLD_FLOW, DEBUG, tankPressure=None):
         # calcSPI: Uses the Single-Phase Incompressible Liquid Flow
         # Assumptions:
         #   Single phase fluid
@@ -123,7 +157,11 @@ class InjectionMethod:
         #   A is the total injector area [m^2]
         #   rho is the density of NOx in the nitrousTank [kg/m^3]
         #   delta_P is the pressure difference between upstream and downstream conditions [N m^2]
+        # if tankPressure == None:
         nitrousP = self.nitrousTank.p
+        # else:
+        #     nitrousP = tankPressure
+
         if COLD_FLOW:
             combustP = self.combustChamber.pi
         else:
@@ -137,7 +175,7 @@ class InjectionMethod:
             print(' nitrousP: %i [psi]\n combustP: %i [psi]\n delta_p: %i [Pa]\n area: %.3E [m\u00b2]\n density: %.2f [kg m\u207B\u00b3]\n cd: %.2f' % (nitrousP, combustP, delta_p, area, rho, cd))
         return cd * area * sqrt(2 * rho * delta_p)
 
-    def calcHEM(self, COLD_FLOW, DEBUG):
+    def calcHEM(self, COLD_FLOW, DEBUG, P1=None, P2=None):
         # calcHEM: Uses the Homogeneous Equilibrium Model
         # Assumptions:
         #   Liquid and vapor phases are in thermal equilibrium
@@ -149,22 +187,41 @@ class InjectionMethod:
         #   A is the total injector area [m^2]
         #   rho_2 is the downstream density [kg/m^3]
         #   delta_h is the enthalpy difference between upstream and downstream conditions [J/kg]
-        nitrousP = self.nitrousTank.p
-        nitrousT = self.nitrousTank.t
-        if COLD_FLOW:
-            combustP = self.combustChamber.pi
-            combustT = self.combustChamber.ti
+        if P1 == None and P2 == None:
+            nitrousP = self.nitrousTank.p
+            nitrousT = self.nitrousTank.t
+            if COLD_FLOW:
+                combustP = self.combustChamber.pi
+                combustT = self.combustChamber.ti
+            else:
+                combustP = self.combustChamber.ps
+                combustT = self.combustChamber.ts
+            delta_h = self.calcDeltaH(nitrousT, nitrousP, combustT, combustP, COLD_FLOW)
+            rho_2 = self.combustChamber.density
+            cd = self.calcCD(nitrousP, combustP)
+            area = self.injectorPlate.A_total
+            if DEBUG:
+                print('*** [HEM] Information:')
+                print(' nitrousP: %.1f [psi]\n combustP: %.1f [psi]\n delta_h: %.3f [J kg\u207B\u00b9]\n area: %.3E [m\u00b2]\n density at CC: %.2f [kg m\u207B\u00b3]\n cd: %.2f' % (nitrousP, combustP, delta_h, area, rho_2, cd))
+            return cd * area * rho_2 * sqrt(2 * delta_h)
         else:
-            combustP = self.combustChamber.ps
-            combustT = self.combustChamber.ts
-        delta_h = self.calcDeltaH(nitrousT, nitrousP, combustT, combustP, COLD_FLOW)
-        rho_2 = self.combustChamber.density
-        cd = self.calcCD(nitrousP, combustP)
-        area = self.injectorPlate.A_total
-        if DEBUG:
-            print('*** [HEM] Information:')
-            print(' nitrousP: %.1f [psi]\n combustP: %.1f [psi]\n delta_h: %.3f [J kg\u207B\u00b9]\n area: %.3E [m\u00b2]\n density at CC: %.2f [kg m\u207B\u00b3]\n cd: %.2f' % (nitrousP, combustP, delta_h, area, rho_2, cd))
-        return cd * area * rho_2 * sqrt(2 * delta_h)
+            nitrousT = self.nitrousTank.t
+            if COLD_FLOW:
+                combustP = self.combustChamber.pi
+                combustT = self.combustChamber.ti
+            else:
+                combustP = self.combustChamber.ps
+                combustT = self.combustChamber.ts
+            delta_h = self.calcDeltaH(nitrousT, None, combustT, None, COLD_FLOW, P1, P2)
+            rho_2 = self.combustChamber.density
+            cd = self.calcCD(P1, P2)
+            area = self.injectorPlate.A_total
+            #if DEBUG:
+            #    print('*** [HEM] Information:')
+            #    print(
+            #        ' nitrousP: %.1f [psi]\n combustP: %.1f [psi]\n delta_h: %.3f [J kg\u207B\u00b9]\n area: %.3E [m\u00b2]\n density at CC: %.2f [kg m\u207B\u00b3]\n cd: %.2f' % (
+            #        P1, P2, delta_h, area, rho_2, cd))
+            return cd * area * rho_2 * sqrt(2 * delta_h)
 
     def calcNHNE(self, COLD_FLOW, DEBUG):
         # calcNHNE: Uses the Non-Homogeneous Non-Equilibrium Model
@@ -194,6 +251,50 @@ class InjectionMethod:
             print('*** [NHNE] Information:')
             print(' nitrousP: %i [psi]\n combustP: %i [psi]\n k: %.5f [unitless]\n area: %f [m\u00b2]\n cd: %.2f\n m_spi: %f [kg s\u207B\u00b9]\n m_hem %f [kg s\u207B\u00b9]' % (nitrousP, combustP, k, area, cd, m_spi, m_hem))
         return (term_1 + term_2)
+
+    time_elapsed = 0  # time tracker for recursive function
+
+    def calcMassFlowRecursive(self, upstreamPressure, downstreamPressure, mass_initial, time):
+        if upstreamPressure <= 250 or upstreamPressure <= downstreamPressure:  # Minimum pressure
+            row = [round(time, 3), round(upstreamPressure, 3), round(downstreamPressure, 3), 0]
+            RECURSIVE_MASS_RATE.append(row)
+
+        else:
+            mass_rate = self.calcHEM(COLD_FLOW_RECURSIVE, DEBUG_RECURSIVE, P1=upstreamPressure, P2=downstreamPressure)
+            row = [round(time, 3), round(upstreamPressure, 3), round(downstreamPressure, 3), round(mass_rate, 3)]
+            time += round((1 / dt), 3)
+            RECURSIVE_MASS_RATE.append(row)
+
+            uP = upstreamPressure * self.conversion.psi2pa + self.ambient.p
+            uT = self.nitrousTank.t + self.conversion.kelvin
+            upstreamEnthalpy = PropsSI('H', 'P', uP, 'T', uT, self.nitrousTank.fluid)
+            upstreamEntropy = PropsSI('S', 'P', uP, 'T', uT, self.nitrousTank.fluid)
+
+            mass_lost = mass_rate / dt
+
+            initial_enthalpy = upstreamEnthalpy * mass_initial
+            enthalpy_lost = upstreamEnthalpy * mass_lost
+            total_enthalpy_lost = (initial_enthalpy - enthalpy_lost) / mass_initial
+
+            print(initial_enthalpy, enthalpy_lost, mass_lost, total_enthalpy_lost, upstreamEnthalpy)
+            upstreamPressure = PropsSI('P', 'H', total_enthalpy_lost, 'Smass', upstreamEntropy, self.nitrousTank.fluid)
+            upstreamPressure = (upstreamPressure - self.ambient.p)/self.conversion.psi2pa
+            mass_initial = mass_initial - mass_lost
+            self.calcMassFlowRecursive(upstreamPressure, downstreamPressure, mass_initial, time)
+        return
+
+    def printRecursive(self):
+        print("[Time [s], upstreamPressure [PSI], downstreamPressure [PSI], flowRate [kg/s]")
+        for i in range(len(RECURSIVE_MASS_RATE)):
+            print(RECURSIVE_MASS_RATE[i])
+        return
+    def getInitTemperature(self):
+        return self.nitrousTank.t + self.conversion.kelvin
+
+    def getPressure(self):
+        return self.nitrousTank.p, (self.nitrousTank.p * self.conversion.psi2pa) + self.ambient.p
+    def convertPressure(self, pressureInKPA):
+        return pressureInKPA / self.conversion.psi2pa
 
 
 class InjectorPlate:

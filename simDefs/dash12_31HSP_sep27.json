@@ -1,0 +1,56 @@
+{
+    "43 Hole Steel Plate, Carbon Dioxide":
+    {
+        "Source of Data": "Using prior cold flow tests for dash 12, 31 holes data from September 27",
+        "Date of Data:": "",
+        "Date of JSON Creation": "Nov 26, 2022"
+    },
+
+    "Ambient":
+    {
+        "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
+        "Pressure": 89000,
+        "Temperature": 22
+    },
+
+    "Injector Plate":
+    {
+        "_comment": "Dimensions are in meters [m]",
+        "__comment": "If no discharge coefficient is provided, program will generate one",
+        "injectorHoleCount": 31,
+        "injectorDiameter": 0.0625,
+        "injectorLength": 0.125,
+        "dischargeCoefficient": 0
+    },
+
+    "Nitrous Tank":
+    {
+        "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [L]",
+        "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
+        "Temperature": -0.11,
+        "Pressure": 472.71,
+        "Volume": 0,
+        "Fluid": "CO2"
+    },
+
+    "Combustion Chamber":
+    {
+        "_comment": "init-T and -P are cold flow values, steady-T and -P are static fire values",
+        "__comment": "55L tank at Rothney",
+        "initialTemperature": 22,
+        "initialPressure": 0,
+        "steadyStateTemperature": 2000,
+        "steadyStatePressure": 300
+    },
+
+    "Conversions":
+    {
+        "_comment": "General conversions factors",
+        "in-to-m": 0.0254,
+        "psi-to-pa": 6894.7573,
+        "gal-to-m3": 0.0037854412,
+        "kelvin": 273.15,
+        "gas-constant-CO2": 188.9,
+        "gas-constant-NOx": 180.73
+    }
+}
