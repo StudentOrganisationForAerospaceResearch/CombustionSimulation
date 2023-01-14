@@ -17,7 +17,7 @@ os.chdir(curDir)  # ch cwd to previously defined absolute path (to ensure consis
 #simDefinition = 'simDefs/sim_input_43Hole_Average.json'  # path to sim definition file in simDefs folder
 #simDefinition = 'simDefs/def_43HSP_CO2.json'  # path to sim definition file in simDefs folder
 #simDefinition = 'simDefs/def_43HSP_NOx_prediction.json'  # path to sim definition file in simDefs folder
-simDefinition = 'simDefs/dash12_21HSP.json'
+simDefinition = 'simDefs/dash12_43HSP_sep27.json'
 
 
 with open(simDefinition) as f:  # open the sim definition file which is json format

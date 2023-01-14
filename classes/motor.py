@@ -92,8 +92,14 @@ class InjectionMethod:
                     #P2 += pressureOffset
                     S1 = PropsSI('S', 'P', P1, 'T', T1, f)
                     S2 = S1
-                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
-                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
+                    Smolar = PropsSI('S', 'T', T2, 'P', P2, f)
+                    print(Smolar, S2)
+                    if S2 < Smolar:
+                        H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                        H2 = PropsSI('H', 'P', P2, 'S', Smolar, f)
+                    else:
+                        H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                        H2 = PropsSI('H', 'P', P2, 'S', S2, f)
                 else:
                     H1 = PropsSI('H', 'P', P1, 'T', T1, f)
                     H2 = PropsSI('H', 'P', P2, 'S', S2, f)
@@ -276,7 +282,6 @@ class InjectionMethod:
             enthalpy_lost = upstreamEnthalpy * mass_lost
             total_enthalpy_lost = (initial_enthalpy - enthalpy_lost) / mass_initial
 
-            print(initial_enthalpy, enthalpy_lost, mass_lost, total_enthalpy_lost, upstreamEnthalpy)
             upstreamPressure = PropsSI('P', 'H', total_enthalpy_lost, 'Smass', upstreamEntropy, self.nitrousTank.fluid)
             upstreamPressure = (upstreamPressure - self.ambient.p)/self.conversion.psi2pa
             mass_initial = mass_initial - mass_lost
