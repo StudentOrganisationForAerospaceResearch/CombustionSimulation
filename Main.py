@@ -17,7 +17,7 @@ os.chdir(curDir)  # ch cwd to previously defined absolute path (to ensure consis
 #simDefinition = 'simDefs/sim_input_43Hole_Average.json'  # path to sim definition file in simDefs folder
 #simDefinition = 'simDefs/def_43HSP_CO2.json'  # path to sim definition file in simDefs folder
 #simDefinition = 'simDefs/def_43HSP_NOx_prediction.json'  # path to sim definition file in simDefs folder
-simDefinition = 'simDefs/dash12_43HSP_sep27.json'
+simDefinition = 'simDefs/dash12_31HSP_sep27.json'
 
 
 with open(simDefinition) as f:  # open the sim definition file which is json format
@@ -27,13 +27,13 @@ m = InjectionMethod(rawDictionary, COLD_FLOW, DEBUG)  # create motor object usin
 m_SPI = m.calcSPI(COLD_FLOW, DEBUG)  # Calls Single Phase Incompressible Model
 m_HEM = m.calcHEM(COLD_FLOW, DEBUG)  # Calls Homogenous Equilibrium Model
 m_NHNE = m.calcNHNE(COLD_FLOW, DEBUG)  # Calls Non-Homogenous Non-Equilibrium Model
-#m_RECURSIVE = m.calcMassFlowRecursive(400.713, 300, 17, 0)
-m_RECURSIVE = m.calcMassFlowRecursive(800, 350, 17, 0)
 
 print('\n\n*** [Mass Flow Rate Predictions]')
 print(' Mass Flow Rate (SPI,%i): %.5f [kg/s]\n Mass Flow Rate (SPI,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_SPI, (m_SPI / m.injectorPlate.holes)))
 print(' Mass Flow Rate (HEM,%i): %.5f [kg/s]\n Mass Flow Rate (HEM,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_HEM, (m_HEM / m.injectorPlate.holes)))
 print(' Mass Flow Rate (NHNE,%i): %.5f [kg/s]\n Mass Flow Rate (NHNE,1): %.5f [kg/s]' % (m.injectorPlate.holes, m_NHNE, (m_NHNE / m.injectorPlate.holes)))
+#m_RECURSIVE = m.calcMassFlowRecursive(800, 300, 17, 0)
+m_RECURSIVE = m.calcMassFlowRecursive(463.7, 14.7, 17, 0)
 m.printRecursive()
 # s = Simulation(m)
 # im = 20  # initial mass in Nitrous Tank in [kg]

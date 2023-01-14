@@ -28,7 +28,7 @@
         "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [L]",
         "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
         "Temperature": 0.29,
-        "Pressure": 400,
+        "Pressure": 800,
         "Volume": 0,
         "Fluid": "CO2"
     },
@@ -38,7 +38,7 @@
         "_comment": "init-T and -P are cold flow values, steady-T and -P are static fire values",
         "__comment": "55L tank at Rothney",
         "initialTemperature": 22,
-        "initialPressure": 0,
+        "initialPressure": 350,
         "steadyStateTemperature": 2000,
         "steadyStatePressure": 300
     },

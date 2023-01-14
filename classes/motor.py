@@ -13,7 +13,7 @@ from CoolProp.CoolProp import PropsSI
 from CoolProp.CoolProp import PhaseSI
 
 RECURSIVE_MASS_RATE = []  # [Time, upstreamPressure, downstreamPressure, massFlowRate]
-dt = 5  # time step, # of times per second
+dt = 10  # time step, # of times per second
 DEBUG_RECURSIVE = True  # toggle for outputting backend information, True or False for on or off, respectively
 COLD_FLOW_RECURSIVE = True  # toggle for cold flow test (CFT) or static fire (SF), True or False for CFT or SF, respectively
 
@@ -93,7 +93,6 @@ class InjectionMethod:
                     S1 = PropsSI('S', 'P', P1, 'T', T1, f)
                     S2 = S1
                     Smolar = PropsSI('S', 'T', T2, 'P', P2, f)
-                    print(Smolar, S2)
                     if S2 < Smolar:
                         H1 = PropsSI('H', 'P', P1, 'T', T1, f)
                         H2 = PropsSI('H', 'P', P2, 'S', Smolar, f)
@@ -118,8 +117,13 @@ class InjectionMethod:
                     P2 = (downstreamPressure * self.conversion.psi2pa) + self.ambient.p
                     S1 = PropsSI('S', 'P', P1, 'T', T1, f)
                     S2 = S1
-                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
-                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
+                    Smolar = PropsSI('S', 'T', T2, 'P', P2, f)
+                    if S2 < Smolar:
+                        H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                        H2 = PropsSI('H', 'P', P2, 'S', Smolar, f)
+                    else:
+                        H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                        H2 = PropsSI('H', 'P', P2, 'S', S2, f)
                 else:
                     P1 = (upstreamPressure * self.conversion.psi2pa) + self.ambient.p
                     P2 = (downstreamPressure * self.conversion.psi2pa) + self.ambient.p
@@ -132,8 +136,13 @@ class InjectionMethod:
                 P2 = (downstreamPressure * self.conversion.psi2pa) + self.ambient.p
                 S1 = PropsSI('S', 'P', P1, 'T', T1, f)
                 S2 = S1
-                H1 = PropsSI('H', 'P', P1, 'T', T1, f)
-                H2 = PropsSI('H', 'P', P2, 'S', S2, f)  # Assuming fluid after injector plate is 95% atomised
+                Smolar = PropsSI('S', 'T', T2, 'P', P2, f)
+                if S2 < Smolar:
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', Smolar, f)
+                else:
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', S2, f)
                 #H22 = PropsSI('H', 'P', P2, 'S', S2, f)
                 #print(H1, H2,H22)
             return abs(H1 - H2)
@@ -276,15 +285,13 @@ class InjectionMethod:
             upstreamEnthalpy = PropsSI('H', 'P', uP, 'T', uT, self.nitrousTank.fluid)
             upstreamEntropy = PropsSI('S', 'P', uP, 'T', uT, self.nitrousTank.fluid)
 
-            mass_lost = mass_rate / dt
-
-            initial_enthalpy = upstreamEnthalpy * mass_initial
-            enthalpy_lost = upstreamEnthalpy * mass_lost
-            total_enthalpy_lost = (initial_enthalpy - enthalpy_lost) / mass_initial
-
-            upstreamPressure = PropsSI('P', 'H', total_enthalpy_lost, 'Smass', upstreamEntropy, self.nitrousTank.fluid)
+            mass_init_rate = mass_initial
+            mass_loss_rate = mass_rate / dt
+            total_enthalpy_change = upstreamEnthalpy * (mass_init_rate - mass_loss_rate) / mass_initial
+            print(total_enthalpy_change, upstreamEnthalpy)
+            upstreamPressure = PropsSI('P', 'H', total_enthalpy_change, 'Smass', upstreamEntropy, self.nitrousTank.fluid)
             upstreamPressure = (upstreamPressure - self.ambient.p)/self.conversion.psi2pa
-            mass_initial = mass_initial - mass_lost
+            mass_initial = mass_init_rate - mass_loss_rate
             self.calcMassFlowRecursive(upstreamPressure, downstreamPressure, mass_initial, time)
         return
 
