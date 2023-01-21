@@ -6,13 +6,6 @@
         "Date of JSON Creation": "Nov 5, 2022"
     },
 
-    "Ambient":
-    {
-        "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
-        "Pressure": 89000,
-        "Temperature": 22
-    },
-
     "Injector Plate":
     {
         "_comment": "Dimensions are in meters [m]",
@@ -28,9 +21,9 @@
         "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [L]",
         "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
         "Temperature": 0.29,
-        "Pressure": 800,
+        C: 800,
         "Volume": 0,
-        "Fluid": "CO2"
+        "Fluid": "NITROUSOXIDE"
     },
 
     "Combustion Chamber":
@@ -41,6 +34,13 @@
         "initialPressure": 350,
         "steadyStateTemperature": 2000,
         "steadyStatePressure": 300
+    },
+
+    "Ambient":
+    {
+        "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
+        "Pressure": 89000,
+        "Temperature": 22
     },
 
     "Conversions":

@@ -15,7 +15,7 @@ from CoolProp.CoolProp import PhaseSI
 RECURSIVE_MASS_RATE = []  # [Time, upstreamPressure, downstreamPressure, massFlowRate]
 dt = 10  # time step, # of times per second
 DEBUG_RECURSIVE = True  # toggle for outputting backend information, True or False for on or off, respectively
-COLD_FLOW_RECURSIVE = True  # toggle for cold flow test (CFT) or static fire (SF), True or False for CFT or SF, respectively
+COLD_FLOW_RECURSIVE = False  # toggle for cold flow test (CFT) or static fire (SF), True or False for CFT or SF, respectively
 
 
 class InjectionMethod:
@@ -78,7 +78,7 @@ class InjectionMethod:
         T1 = T1 + self.conversion.kelvin
         T2 = T2 + self.conversion.kelvin
 
-        if upstreamPressure==None and downstreamPressure==None:
+        if upstreamPressure == None and downstreamPressure == None:
             P1 = (P1 * self.conversion.psi2pa) + self.ambient.p
             P2 = (P2 * self.conversion.psi2pa) + self.ambient.p
             S1 = PropsSI('S', 'P', P1, 'T', T1, f)
@@ -138,6 +138,9 @@ class InjectionMethod:
                 S2 = S1
                 Smolar = PropsSI('S', 'T', T2, 'P', P2, f)
                 if S2 < Smolar:
+                    H1 = PropsSI('H', 'P', P1, 'T', T1, f)
+                    H2 = PropsSI('H', 'P', P2, 'S', Smolar, f)
+                if f == "NITROUSOXIDE":
                     H1 = PropsSI('H', 'P', P1, 'T', T1, f)
                     H2 = PropsSI('H', 'P', P2, 'S', Smolar, f)
                 else:
@@ -238,7 +241,7 @@ class InjectionMethod:
             #        P1, P2, delta_h, area, rho_2, cd))
             return cd * area * rho_2 * sqrt(2 * delta_h)
 
-    def calcNHNE(self, COLD_FLOW, DEBUG):
+    def calcNHNE(self, COLD_FLOW, DEBUG, P1=None, P2=None):
         # calcNHNE: Uses the Non-Homogeneous Non-Equilibrium Model
         # Assumptions:
         #   liquid residence time is larger than bubble growth time
@@ -252,7 +255,10 @@ class InjectionMethod:
         #   m_hem is the homogenous equilibrium model flow rate prediction [kg/s]
         area = self.injectorPlate.A_total
         m_spi = self.calcSPI(COLD_FLOW, DEBUG)
-        m_hem = self.calcHEM(COLD_FLOW, DEBUG)
+        if P1 == None and P2 == None:
+            m_hem = self.calcHEM(COLD_FLOW, DEBUG)
+        else:
+            m_hem = self.calcHEM(COLD_FLOW, DEBUG, P1, P2)
         nitrousP = self.nitrousTank.p
         if COLD_FLOW:
             combustP = self.combustChamber.pi
@@ -275,7 +281,7 @@ class InjectionMethod:
             RECURSIVE_MASS_RATE.append(row)
 
         else:
-            mass_rate = self.calcHEM(COLD_FLOW_RECURSIVE, DEBUG_RECURSIVE, P1=upstreamPressure, P2=downstreamPressure)
+            mass_rate = self.calcNHNE(COLD_FLOW_RECURSIVE, DEBUG_RECURSIVE, P1=upstreamPressure, P2=downstreamPressure)
             row = [round(time, 3), round(upstreamPressure, 3), round(downstreamPressure, 3), round(mass_rate, 3)]
             time += round((1 / dt), 3)
             RECURSIVE_MASS_RATE.append(row)
