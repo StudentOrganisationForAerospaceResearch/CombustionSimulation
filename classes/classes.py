@@ -145,7 +145,12 @@ class Motor:
         t1 = self.nitrousTank.temp + self.conversions.kelvin
         pv1 = PropsSI('P', 'T', t1, 'Q', 1, self.nitrousTank.fluid)
 
-        K = sqrt((p1 - p2) / (pv1 - p2))
+        if (p1 - p2)/(pv1-p2) >=0:
+
+            K = sqrt((p1 - p2) / (pv1 - p2))
+
+        else:
+            K = 1
 
         return K
 

@@ -1,0 +1,49 @@
+{
+    "Ambient":
+    {
+        "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
+        "Pressure": 89000,
+        "Temperature": 18
+    },
+
+    "Conversions":
+    {
+        "_comment": "General conversions factors",
+        "in-to-m": 0.0254,
+        "psi-to-pa": 6894.7573,
+        "gal-to-m3": 0.0037854412,
+        "kelvin": 273.15,
+        "l2m3": 1e-3,
+        "gas-constant-CO2": 188.9,
+        "gas-constant-NOx": 180.73
+    },
+
+    "Injector Plate":
+    {
+        "_comment": "Dimensions are in inches [in]",
+        "__comment": "If no discharge coefficient is provided, program will generate one",
+        "injectorHoleCount": 41,
+        "injectorDiameter": 0.0625,
+        "injectorLength": 0.125,
+        "dischargeCoefficient": 0
+    },
+
+    "Nitrous Tank":
+    {
+        "_comment": "Temperature, Pressure, and Volume are in [psig], and [L]",
+        "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
+        "Pressure": 600,
+        "Volume": 53,
+        "Fluid": "CO2"
+    },
+
+    "Combustion Chamber":
+    {
+        "_comment": "init-T and -P are cold flow values, steady-T and -P are static fire values",
+        "__comment": "55L tank at Rothney, temperatures in deg C, pressures in psig",
+        "initialTemperature": 20,
+        "initialPressure": 350,
+        "steadyStateTemperature": 2000,
+        "steadyStatePressure": 14
+    }
+}

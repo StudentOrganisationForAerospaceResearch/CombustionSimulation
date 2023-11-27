@@ -10,7 +10,7 @@
     {
         "_comment": "Dimensions are in meters [m]",
         "__comment": "If no discharge coefficient is provided, program will generate one",
-        "injectorHoleCount": 43,
+        "injectorHoleCount": 19,
         "injectorDiameter": 0.0625,
         "injectorLength": 0.125,
         "dischargeCoefficient": 0
@@ -20,27 +20,27 @@
     {
         "_comment": "Temperature, Pressure, and Volume are in [C], [psi], and [L]",
         "__comment": "Fluid naming for PropsSI -> CO2 or NITROUSOXIDE",
-        "Temperature": 0.29,
-        C: 800,
-        "Volume": 0,
-        "Fluid": "NITROUSOXIDE"
+        "Temperature": -40,
+        "Pressure": 458,
+        "Volume": 5e-3,
+        "Fluid": "CO2"
     },
 
     "Combustion Chamber":
     {
         "_comment": "init-T and -P are cold flow values, steady-T and -P are static fire values",
         "__comment": "55L tank at Rothney",
-        "initialTemperature": 22,
-        "initialPressure": 350,
+        "initialTemperature": 20,
+        "initialPressure": 14,
         "steadyStateTemperature": 2000,
-        "steadyStatePressure": 300
+        "steadyStatePressure": 14
     },
 
     "Ambient":
     {
         "_comment": "Ambient conditions, pressure [Pa] and temperature [C]",
         "Pressure": 89000,
-        "Temperature": 22
+        "Temperature": 20
     },
 
     "Conversions":

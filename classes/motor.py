@@ -24,8 +24,9 @@ class InjectionMethod:
             print("[!] COLD FLOW TEST ENABLED")
         else:
             print("[!] STATIC FIRE TEST ENABLED")
-        self.ambient = Ambient(self, rawDictionary["Ambient"], DEBUG)
+
         self.conversion = Conversions(self, rawDictionary["Conversions"], COLD_FLOW, DEBUG)
+        self.ambient = Ambient(self, rawDictionary["Ambient"], DEBUG)
         self.injectorPlate = InjectorPlate(self, rawDictionary["Injector Plate"], DEBUG)
         self.nitrousTank = NitrousTank(self, rawDictionary["Nitrous Tank"], COLD_FLOW, DEBUG)
         self.combustChamber = CombustionChamber(self, rawDictionary["Combustion Chamber"], COLD_FLOW, DEBUG)
@@ -36,9 +37,10 @@ class InjectionMethod:
             D = self.injectorPlate.d
 
             ar = L/D  # The aspect ratio (aka L/D ratio)
+            print(ar)
 
-            nitrousP = nitrousP * self.conversion.psi2pa
-            combustP = combustP * self.conversion.psi2pa
+            nitrousP = nitrousP
+            combustP = combustP
 
             two_and_five = 0.0005 * ar ** 2 - 0.0197 * ar + 0.5943
             two_and_six = 0.0005 * ar ** 2 - 0.0197 * ar + 0.5799
@@ -75,13 +77,9 @@ class InjectionMethod:
         #   H1 is the upstream enthalpy [kJ/kg] (NOx tank)
         #   H2 is the downstream enthalpy [kJ/kg] (CC)
         f = self.nitrousTank.fluid
-        T1 = T1 + self.conversion.kelvin
-        T2 = T2 + self.conversion.kelvin
 
         if upstreamPressure == None and downstreamPressure == None:
-            P1 = (P1 * self.conversion.psi2pa) + self.ambient.p
-            P2 = (P2 * self.conversion.psi2pa) + self.ambient.p
-            S1 = PropsSI('S', 'P', P1, 'T', T1, f)
+            S1 = PropsSI('S', 'P', P1, 'Q', 0, f)
             S2 = S1
             if COLD_FLOW:
                 if f == "CO2":
@@ -161,7 +159,13 @@ class InjectionMethod:
         T1 = self.nitrousTank.t + self.conversion.kelvin
         P2 = combustP * self.conversion.psi2pa + self.ambient.p
         Pv1 = PropsSI('P', 'T', T1, 'Q', 1, f) + self.ambient.p
-        return sqrt((P1 - P2) / (Pv1 - P2))
+
+        if (P1 - P2) / (Pv1 - P2) >= 0:
+
+            return sqrt((P1 - P2) / (Pv1 - P2))
+        
+        else:
+            return 1
 
     def calcSPI(self, COLD_FLOW, DEBUG, tankPressure=None):
         # calcSPI: Uses the Single-Phase Incompressible Liquid Flow
@@ -184,13 +188,17 @@ class InjectionMethod:
             combustP = self.combustChamber.pi
         else:
             combustP = self.combustChamber.ps
-        delta_p = (nitrousP - combustP) * self.conversion.psi2pa
+
+        delta_p = (nitrousP - combustP)
+        print(delta_p)
         cd = self.calcCD(nitrousP, combustP)
         area = self.injectorPlate.A_total
-        rho = self.nitrousTank.tankDensity
+        rho = PropsSI("D", "P", self.nitrousTank.p, "Q", 0, self.nitrousTank.fluid)
+
         if DEBUG:
             print('*** [SPI] Information:')
             print(' nitrousP: %i [psi]\n combustP: %i [psi]\n delta_p: %i [Pa]\n area: %.3E [m\u00b2]\n density: %.2f [kg m\u207B\u00b3]\n cd: %.2f' % (nitrousP, combustP, delta_p, area, rho, cd))
+        
         return cd * area * sqrt(2 * rho * delta_p)
 
     def calcHEM(self, COLD_FLOW, DEBUG, P1=None, P2=None):
@@ -208,20 +216,28 @@ class InjectionMethod:
         if P1 == None and P2 == None:
             nitrousP = self.nitrousTank.p
             nitrousT = self.nitrousTank.t
+
             if COLD_FLOW:
                 combustP = self.combustChamber.pi
                 combustT = self.combustChamber.ti
             else:
                 combustP = self.combustChamber.ps
                 combustT = self.combustChamber.ts
-            delta_h = self.calcDeltaH(nitrousT, nitrousP, combustT, combustP, COLD_FLOW)
-            rho_2 = self.combustChamber.density
-            cd = self.calcCD(nitrousP, combustP)
+
+            stagnationEnthalpy = PropsSI('H', 'P', nitrousP, 'Q', 0, self.nitrousTank.fluid)
+            entropy = PropsSI('S', 'H', stagnationEnthalpy, 'P', nitrousP, self.nitrousTank.fluid)
+            downStreamEnthalpy = PropsSI('H', 'S', entropy, 'P', combustP, self.nitrousTank.fluid)
+            delta_h = abs(downStreamEnthalpy - stagnationEnthalpy)
+
+            rho_2 = PropsSI('D', 'S', entropy, 'P', combustP, self.nitrousTank.fluid)
+            cd = 0.63 #according to https://web.stanford.edu/~cantwell/AA284A_Course_Material/AA284A_Resources/Nino%20and%20Razavi,%20Design%20of%20Two-Phase%20Injectors%20Using%20Analytical%20and%20Numerical%20Methods%20with%20Application%20to%20Hybrid%20Rockets%202019-4154.pdf
             area = self.injectorPlate.A_total
             if DEBUG:
                 print('*** [HEM] Information:')
                 print(' nitrousP: %.1f [psi]\n combustP: %.1f [psi]\n delta_h: %.3f [J kg\u207B\u00b9]\n area: %.3E [m\u00b2]\n density at CC: %.2f [kg m\u207B\u00b3]\n cd: %.2f' % (nitrousP, combustP, delta_h, area, rho_2, cd))
+            
             return cd * area * rho_2 * sqrt(2 * delta_h)
+        
         else:
             nitrousT = self.nitrousTank.t
             if COLD_FLOW:
@@ -230,6 +246,7 @@ class InjectionMethod:
             else:
                 combustP = self.combustChamber.ps
                 combustT = self.combustChamber.ts
+
             delta_h = self.calcDeltaH(nitrousT, None, combustT, None, COLD_FLOW, P1, P2)
             rho_2 = self.combustChamber.density
             cd = self.calcCD(P1, P2)
@@ -318,37 +335,51 @@ class InjectionMethod:
 class InjectorPlate:
     def __init__(self, motor, subDict, DEBUG):
         self.holes = subDict["injectorHoleCount"]
-        self.d = subDict["injectorDiameter"]
-        self.l = subDict["injectorLength"]
+        self.d = subDict["injectorDiameter"] * motor.conversion.in2m
+        self.l = subDict["injectorLength"] * motor.conversion.in2m
         self.cd = subDict["dischargeCoefficient"]
-        self.motor = motor
-        self.A, self.A_total = self.calcArea()
+        self.A, self.A_total = self.calcArea(motor)
+        
         if DEBUG:
             print('*** [Injector Plate] Information:')
             print(' Holes: %i\n Diameter: %.5f [in]\n Length: %.5f [in]\n L/D: %.1f' % (self.holes, self.d, self.l, (self.l / self.d)))
             print(' Single Orifice Area[1]: %.3E [m\u00b2]\n Total Orifice Area[%i]: %.3E [m\u00b2]' % (self.A, self.holes, self.A_total))
 
-    def calcArea(self):
+    def calcArea(self, motor):
         h = self.holes
-        d = self.d * self.motor.conversion.in2m
+        d = self.d
+
         A = (pi / 4) * (d ** 2)
         A_total = A * h
+
         return A, A_total
 
+    def __str__(self):
+        return """
+        Injector Plate Variables:
+
+        Number of Holes: %s.
+        Hole Diameter: %s m.
+        Hole Length: %s m.
+        Discharge Coefficient %s.
+        Per Hole Area: %s m^2.
+        Total Area: %s m^2.""" % (self.holes, self.d, self.l, self.cd, self.A, self.A_total)
 
 class NitrousTank:
     def __init__(self, motor, subDict, COLD_FLOW, DEBUG):
-        self.v = subDict["Volume"]
-        self.t = subDict["Temperature"]
-        self.p = subDict["Pressure"]
+        self.v = subDict["Volume"] * motor.conversion.l2m3
+        self.p = subDict["Pressure"] * motor.conversion.psi2pa + motor.ambient.p
         self.fluid = subDict["Fluid"]
+        self.t = PropsSI("T", "P", self.p, "Q", 0.5, self.fluid)
+
+        #checking for invalid fluid names used
         if self.fluid != "CO2" and self.fluid != "NITROUSOXIDE":
             print("[!!!] Improper fluid naming convention \'%s\'" % self.fluid)
             print("[!!!] Please see .JSON for proper format")
             exit(-1)
-        self.motor = motor
-        self.pressureAnalytical = self.calcPressure()
-        self.tankDensity = self.calcDensity(COLD_FLOW)
+
+        self.tankDensity = self.calcDensity(COLD_FLOW, motor)
+
         if DEBUG:
             print('*** [Nitrous] General Information')
             if COLD_FLOW:
@@ -356,38 +387,50 @@ class NitrousTank:
             else:
                 print(' Temperature: %.1f [C]\n Pressure: %.1f [psi] \n Pressure PropSI: %.2f [apsi]\n Tank Density: %.2f [kg m\u207B\u00b3]' % (self.t, self.p, self.pressureAnalytical, self.tankDensity))
 
-    def calcPressure(self):
-        t = self.t + self.motor.conversion.kelvin
+    def calcDensity(self, COLD_FLOW, motor):
+        t = self.t
+        p = self.p
         f = self.fluid
-        p = PropsSI('P', 'T', t, 'Q', 0, f)
-        p = (p - self.motor.ambient.p) / self.motor.conversion.psi2pa
-        return p
 
-    def calcDensity(self, COLD_FLOW):
-        t = self.t + self.motor.conversion.kelvin
-        p = self.p * self.motor.conversion.psi2pa + self.motor.ambient.p
-        f = self.fluid
         if COLD_FLOW:
-            rho = PropsSI('D', 'P', p, 'Q', 0, f)
+            rho = PropsSI('D', 'P', p, 'Q', 0.127, f)
         else:
             rho = PropsSI('D', 'P', p, 'Q', 0, f)
         return rho
 
+    def __str__(self):
+        return """
+        Nitrous Tank Variables:
+    
+        Volume: %s L.
+        Absolute Pressure: %s Pa.
+        Temperature: %s K.
+        Mixture Density: %s kg/m^3.""" % (self.v, self.p, self.t, self.tankDensity)
 
 class CombustionChamber:
     def __init__(self, motor, subDict, COLD_FLOW, DEBUG):
-        self.ti = subDict["initialTemperature"]
-        self.pi = subDict["initialPressure"]
-        self.ts = subDict["steadyStateTemperature"]
-        self.ps = subDict["steadyStatePressure"]
-        self.motor = motor
-        self.density = self.calcDensity(COLD_FLOW)
+        self.ti = subDict["initialTemperature"] + motor.conversion.kelvin
+        self.pi = subDict["initialPressure"]  * motor.conversion.psi2pa + motor.ambient.p
+        self.ts = subDict["steadyStateTemperature"] + motor.conversion.kelvin
+        self.ps = subDict["steadyStatePressure"] * motor.conversion.psi2pa + motor.ambient.p
+        
         if DEBUG:
             print('*** [Combustion Chamber] General Information')
             if COLD_FLOW:
-                print(' Temperature: %.1f [C]\n Pressure: %.1f [psi]\n Density: %.2f [kg m\u207B\u00b3]' % (self.ti, self.pi, self.density))
+                pass
+                #print(' Temperature: %.1f [C]\n Pressure: %.1f [psi]\n Density: %.2f [kg m\u207B\u00b3]' % (self.ti, self.pi, self.density))
             else:
                 print(' Temperature: %.1f [C]\n Pressure: %.1f [psi]\n Density: %.2f [kg m\u207B\u00b3]' % (self.ts, self.ps, self.density))
+
+    def __str__(self):
+        return """
+        Combustion Chamber Variables:
+
+        Initial Temperature: %s K.
+        Initial Pressure: %s Pa.
+        Steady State Temperature %s K. 
+        Steady State Pressure %s Pa.
+        """ % (self.ti, self.pi, self.ts, self.ps)
 
     def calcDensity(self, COLD_FLOW):
         initTemp = self.ti + self.motor.conversion.kelvin
@@ -406,15 +449,20 @@ class CombustionChamber:
             #rho = PropsSI('D', 'P', steadyPres, 'T', steadyTemp, f)
         return rho
 
-
 class Ambient:
     def __init__(self, motor, subDict, DEBUG):
-        self.t = subDict["Temperature"]
+        self.t = subDict["Temperature"] + motor.conversion.kelvin
         self.p = subDict["Pressure"]
-        self.motor = motor
+
         if DEBUG:
             print('[Ambient] Values loaded successfully')
 
+    def __str__(self):
+        return """
+        Ambient Variables:
+
+        Temperature: %s K.
+        Absolute Pressure: %s Pa.""" % (self.t, self.p)
 
 class Conversions:
     def __init__(self, motor, subDict, COLD_FLOW, DEBUG):
@@ -422,6 +470,7 @@ class Conversions:
         self.psi2pa = subDict["psi-to-pa"]
         self.gal2m3 = subDict["gal-to-m3"]
         self.kelvin = subDict["kelvin"]
-        self.motor = motor
+        self.l2m3 = subDict["l2m3"]
+        
         if DEBUG:
             print('[Conversions] Values loaded successfully')
